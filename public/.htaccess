@@ -7,6 +7,17 @@
     php_value upload_max_filesize 50M
 </IfModule>
 
+# Allow access to storage files
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^storage/app/public/(.*)$ /storage/$1 [L,NC]
+</IfModule>
+
+<FilesMatch "\.(jpe?g|png|gif|ico|svg|webp)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
 
 
 <IfModule mod_headers.c>

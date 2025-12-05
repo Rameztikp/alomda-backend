@@ -41,12 +41,20 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL', 'http://localhost:8000').'/storage',
             'visibility' => 'public',
             'throw' => false,
-            'report' => false,
+            'permissions' => [
+                'file' => [
+                    'public' => 0664,
+                    'private' => 0664,
+                ],
+                'dir' => [
+                    'public' => 0775,
+                    'private' => 0775,
+                ],
+            ],
         ],
-
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

@@ -70,7 +70,8 @@ class ProductResource extends Resource
                     ->label('صورة المنتج')
                     ->image()
                     ->disk('public')
-                    ->directory('products'),
+                    ->directory('products')
+                    ->visibility('public'),
 
                 Forms\Components\Toggle::make('is_active')
                     ->label('نشط؟')

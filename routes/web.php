@@ -1,32 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Address; // 💡 تأكد من استيراد نموذج العنوان الصحيح
+Route::get('/', function () {
+    return view('welcome');
+});
 
-class AddressController extends Controller
-{
-    /**
-     * جلب كل العناوين وإرجاعها كـ JSON.
-     * هذا هو الكود الذي سيعيد البيانات للواجهة الأمامية.
-     * * @return \Illuminate\Http\JsonResponse
-     */
-    public function index()
-    {
-        // 1. جلب كل العناوين من قاعدة البيانات.
-        // يفضل استخدام ()paginate() للتعامل مع البيانات الكبيرة
-        $addresses = Address::all(); 
-
-        // 2. إرجاع مجموعة البيانات في استجابة JSON
-        // Laravel ستقوم تلقائياً بتحويل الـ Collection إلى JSON.
-        return response()->json([
-            'status' => 'success',
-            'data' => $addresses,
-            'message' => 'تم جلب قائمة العناوين بنجاح.'
-        ], 200); // رمز الحالة 200 يعني OK (نجاح)
+// Serve storage files directly
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (file_exists($filePath)) {
+        return response()->file($filePath, [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => '*',
+            'Cache-Control' => 'public, max-age=31536000',
+        ]);
     }
-
-    // 💡 يمكنك إضافة وظائف أخرى هنا مثل show(لعرض عنوان واحد), store (لإضافة عنوان), etc.
-}
+    abort(404);
+})->where('path', '.*')->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
