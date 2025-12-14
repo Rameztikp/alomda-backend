@@ -3,18 +3,7 @@ services:
     name: alomda-backend
     env: php
     buildCommand: |
-      # Create all required directories with proper permissions
-      mkdir -p storage/framework/cache/data
-      mkdir -p storage/framework/sessions
-      mkdir -p storage/framework/views
-      mkdir -p storage/logs
-      mkdir -p bootstrap/cache
-      
-      # Set proper permissions
-      chmod -R 777 storage
-      chmod -R 777 bootstrap/cache
-      
-      # Install composer dependencies
+      # Install composer dependencies (this will trigger pre-autoload-dump)
       composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
       
       # Copy .env file if not exists
@@ -24,9 +13,12 @@ services:
         php artisan key:generate --force
       fi
       
-      # Run the build script
-      chmod +x build.sh
-      ./build.sh
+      # Clear and cache configuration
+      php artisan config:clear
+      php artisan config:cache
+      
+      # Optimize the application
+      php artisan optimize
     startCommand: "bash -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000'"
     envVars:
       - key: APP_ENV

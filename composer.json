@@ -42,6 +42,15 @@
         }
     },
     "scripts": {
+        "pre-autoload-dump": [
+            "mkdir -p storage/framework/cache/data",
+            "mkdir -p storage/framework/sessions",
+            "mkdir -p storage/framework/views",
+            "mkdir -p storage/logs",
+            "mkdir -p bootstrap/cache",
+            "chmod -R 777 storage",
+            "chmod -R 777 bootstrap/cache"
+        ],
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
