@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: alomda-backend
+    env: php
+    buildCommand: |
+      mkdir -p storage/framework/cache/data
+      mkdir -p storage/framework/sessions
+      mkdir -p storage/framework/views
+      chmod -R 775 storage
+      ./build.sh
+    startCommand: "bash -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000'"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromDatabase:
+          name: alomda-db
+          property: connectionString.host
+      - key: DB_PORT
