@@ -3,20 +3,22 @@ services:
     name: alomda-backend
     env: php
     buildCommand: |
-      # Copy custom php.ini if it exists
-      if [ -f php.ini ]; then
-        cp php.ini /usr/local/etc/php/conf.d/custom.ini
-      fi
+      # Create required directories with proper permissions
+      mkdir -p storage/framework/cache/data
+      mkdir -p storage/framework/sessions
+      mkdir -p storage/framework/views
+      mkdir -p storage/logs
       
-      # Install composer dependencies (this will trigger pre-autoload-dump)
+      # Set proper permissions
+      chmod -R 775 storage/
+      chmod -R 775 bootstrap/cache/
+      
+      # Install composer dependencies
       composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
       
-      # Copy .env file if not exists
-      if [ ! -f .env ]; then
-        cp .env.example .env
-        # Generate application key
-        php artisan key:generate --force
-      fi
+      # Generate application key if not exists
+      [ -f .env ] || cp .env.example .env
+      php artisan key:generate --force
       
       # Clear and cache configuration
       php artisan config:clear
