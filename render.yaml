@@ -3,6 +3,11 @@ services:
     name: alomda-backend
     env: php
     buildCommand: |
+      # Copy custom php.ini if it exists
+      if [ -f php.ini ]; then
+        cp php.ini /usr/local/etc/php/conf.d/custom.ini
+      fi
+      
       # Install composer dependencies (this will trigger pre-autoload-dump)
       composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
       
