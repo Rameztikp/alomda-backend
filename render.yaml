@@ -3,39 +3,60 @@ services:
     name: alomda-backend
     env: php
     buildCommand: |
-      # Disable ElasticPHP
-      echo 'elastic_php.enabled = 0' > /usr/local/etc/php/conf.d/disable_elastic.ini
-      echo 'elastic.enabled = 0' >> /usr/local/etc/php/conf.d/disable_elastic.ini
-
-      # Create required directories with proper permissions
+      # Create required directories
       mkdir -p storage/framework/cache/data
       mkdir -p storage/framework/sessions
       mkdir -p storage/framework/views
       mkdir -p storage/logs
       mkdir -p bootstrap/cache
-
+      
       # Set proper permissions
       chmod -R 775 storage/
       chmod -R 775 bootstrap/cache/
-
+      
+      # Copy custom php.ini
+      if [ -f php.ini ]; then
+        cp php.ini /usr/local/etc/php/conf.d/custom.ini
+      fi
+      
+      # Disable ElasticPHP explicitly
+      echo 'elastic_php.enabled = 0' > /usr/local/etc/php/conf.d/disable_elastic.ini
+      echo 'elastic.enabled = 0' >> /usr/local/etc/php/conf.d/disable_elastic.ini
+      
       # Install composer dependencies
       composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-
+      
       # Generate application key if not exists
       [ -f .env ] || cp .env.example .env
       php artisan key:generate --force
-
+      
       # Clear and cache configuration
       php artisan config:clear
       php artisan config:cache
-
+      
       # Optimize the application
       php artisan optimize
-
-      # Ensure proper permissions
+      
+      # Set proper ownership
       chown -R www-data:www-data .
-
-    startCommand: "bash -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000'"
+    
+    # Use PHP-FPM directly with custom configuration
+    startCommand: |
+      #!/bin/bash
+      set -e
+      
+      # Start PHP-FPM in background
+      php-fpm &
+      
+      # Start Nginx
+      nginx -g 'daemon off;'
+      
+      # Run migrations and start the application
+      php artisan migrate --force
+      php artisan serve --host=0.0.0.0 --port=10000
+      
+      # Keep the container running
+      tail -f /dev/null
     envVars:
       - key: APP_ENV
         value: production
