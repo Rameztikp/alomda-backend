@@ -3,29 +3,38 @@ services:
     name: alomda-backend
     env: php
     buildCommand: |
+      # Disable ElasticPHP
+      echo 'elastic_php.enabled = 0' > /usr/local/etc/php/conf.d/disable_elastic.ini
+      echo 'elastic.enabled = 0' >> /usr/local/etc/php/conf.d/disable_elastic.ini
+
       # Create required directories with proper permissions
       mkdir -p storage/framework/cache/data
       mkdir -p storage/framework/sessions
       mkdir -p storage/framework/views
       mkdir -p storage/logs
-      
+      mkdir -p bootstrap/cache
+
       # Set proper permissions
       chmod -R 775 storage/
       chmod -R 775 bootstrap/cache/
-      
+
       # Install composer dependencies
       composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-      
+
       # Generate application key if not exists
       [ -f .env ] || cp .env.example .env
       php artisan key:generate --force
-      
+
       # Clear and cache configuration
       php artisan config:clear
       php artisan config:cache
-      
+
       # Optimize the application
       php artisan optimize
+
+      # Ensure proper permissions
+      chown -R www-data:www-data .
+
     startCommand: "bash -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000'"
     envVars:
       - key: APP_ENV
