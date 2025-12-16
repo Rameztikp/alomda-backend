@@ -1,4 +1,8 @@
-<?php
+cd d:\alomda\alomda-backend
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear<?php
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
-        $middleware->trustHosts(['*']);
+        // Do not trust all hosts as a literal '*' pattern —
+        // passing '*' becomes an invalid regex ("{*}i") in Symfony's Request.
+        // Let the middleware use the application URL (app.url) to build trusted host
+        // patterns by calling trustHosts() with no explicit patterns.
+        $middleware->trustHosts();
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);

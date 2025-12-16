@@ -1,46 +1,25 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# exit on error
+set -o errexit
 
-# Disable ElasticPHP
-echo 'elastic_php.enabled = 0' > /usr/local/etc/php/conf.d/disable_elastic.ini
-echo 'elastic.enabled = 0' >> /usr/local/etc/php/conf.d/disable_elastic.ini
-
-# Create required directories
-mkdir -p storage/framework/cache/data
-mkdir -p storage/framework/sessions
-mkdir -p storage/framework/views
-mkdir -p storage/logs
-mkdir -p bootstrap/cache
-
-# Set proper permissions
-chmod -R 775 storage/
-chmod -R 775 bootstrap/cache/
-
-# Install PHP dependencies
+# Install dependencies
 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-# Generate application key if not exists
-[ -f .env ] || cp .env.example .env
+# Generate application key
 php artisan key:generate --force
 
-# Clear and cache configuration
+# Clear and cache config
 php artisan config:clear
 php artisan config:cache
-php artisan route:clear
-php artisan view:clear
-php artisan optimize:clear
 
-# Cache routes and views
+# Clear and cache routes
+php artisan route:clear
 php artisan route:cache
+
+# Clear and cache views
+php artisan view:clear
 php artisan view:cache
 
-# Install and build assets
-npm install --no-audit --prefer-offline --no-progress
+# Install npm dependencies and build assets
+npm install
 npm run build
-
-# Set proper ownership (if running as root)
-if [ "$(id -u)" = "0" ]; then
-    chown -R www-data:www-data .
-fi
-
-echo "Build completed successfully!"
